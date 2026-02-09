@@ -690,6 +690,136 @@ vllm serve Qwen/Qwen3-235B-A22B-Instruct-2507 --tensor-parallel-size 8 --enable-
 
 ---
 
+## 全量版本工具调用/MCP 最简配置
+
+> 以下为**全量模型（非量化）** 部署时，启用工具调用和 MCP 支持的**最小必要参数**。
+
+### GLM-4.7 全量版本
+
+```bash
+vllm serve zai-org/GLM-4.7 \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --tensor-parallel-size 8 \
+    --enable-auto-tool-choice \
+    --tool-call-parser glm47 \
+    --trust-remote-code \
+    --served-model-name glm-4.7
+```
+
+**必要参数说明**：
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| `--enable-auto-tool-choice` | (无值) | **必需**，启用工具自动调用 |
+| `--tool-call-parser` | `glm47` | **必需**，GLM-4.7 专用解析器 |
+| `--trust-remote-code` | (无值) | **必需**，GLM 模型需要 |
+
+**可选增强参数**：
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| `--reasoning-parser` | `glm45` | 启用推理/思考解析 |
+| `--speculative-config.method` | `mtp` | MTP 推测解码加速 |
+| `--speculative-config.num_speculative_tokens` | `1` | 推测 token 数 |
+
+**完整推荐命令**：
+
+```bash
+vllm serve zai-org/GLM-4.7 \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --tensor-parallel-size 8 \
+    --enable-auto-tool-choice \
+    --tool-call-parser glm47 \
+    --reasoning-parser glm45 \
+    --gpu-memory-utilization 0.9 \
+    --max-model-len 32768 \
+    --trust-remote-code \
+    --served-model-name glm-4.7
+```
+
+---
+
+### Qwen3-235B-A22B 全量版本
+
+```bash
+vllm serve Qwen/Qwen3-235B-A22B \
+    --host 0.0.0.0 \
+    --port 8001 \
+    --tensor-parallel-size 8 \
+    --enable-auto-tool-choice \
+    --tool-call-parser hermes \
+    --trust-remote-code \
+    --served-model-name qwen3-235b
+```
+
+**必要参数说明**：
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| `--enable-auto-tool-choice` | (无值) | **必需**，启用工具自动调用 |
+| `--tool-call-parser` | `hermes` | **必需**，Qwen3 使用 Hermes 格式 |
+| `--trust-remote-code` | (无值) | **必需**，Qwen 模型需要 |
+
+**可选增强参数**：
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| `--reasoning-parser` | `deepseek_r1` | 启用推理/思考解析 |
+| `--enable-expert-parallel` | (无值) | MoE 专家并行优化 |
+
+**完整推荐命令**：
+
+```bash
+vllm serve Qwen/Qwen3-235B-A22B \
+    --host 0.0.0.0 \
+    --port 8001 \
+    --tensor-parallel-size 8 \
+    --enable-auto-tool-choice \
+    --tool-call-parser hermes \
+    --reasoning-parser deepseek_r1 \
+    --gpu-memory-utilization 0.9 \
+    --max-model-len 32768 \
+    --trust-remote-code \
+    --served-model-name qwen3-235b
+```
+
+---
+
+### 工具调用/MCP 参数速查表
+
+| 模型 | tool-call-parser | reasoning-parser | 其他必需 |
+|------|------------------|------------------|----------|
+| **GLM-4.7** | `glm47` | `glm45` | `--trust-remote-code` |
+| **Qwen3-235B-A22B** | `hermes` | `deepseek_r1` | `--trust-remote-code` |
+
+### MCP 客户端配置示例
+
+```json
+{
+  "llm": {
+    "provider": "openai",
+    "baseUrl": "http://YOUR_SERVER_IP:8000/v1",
+    "model": "glm-4.7",
+    "apiKey": "not-needed"
+  }
+}
+```
+
+```json
+{
+  "llm": {
+    "provider": "openai",
+    "baseUrl": "http://YOUR_SERVER_IP:8001/v1",
+    "model": "qwen3-235b",
+    "apiKey": "not-needed"
+  }
+}
+```
+
+---
+
 ## 参考链接
 
 - [vLLM Tool Calling 官方文档](https://docs.vllm.ai/en/latest/features/tool_calling/)
