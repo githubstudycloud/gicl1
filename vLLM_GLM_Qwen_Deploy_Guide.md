@@ -820,6 +820,73 @@ vllm serve Qwen/Qwen3-235B-A22B \
 
 ---
 
+## UFW 对特定 IP 开放端口（无速率限制）
+
+### 对单个 IP 开放大模型端口
+
+```bash
+# 对特定 IP 开放 8000 端口（GLM-4.7）无任何限制
+sudo ufw allow from 192.168.1.100 to any port 8000 proto tcp
+
+# 对特定 IP 开放 8001 端口（Qwen3-235B）无任何限制
+sudo ufw allow from 192.168.1.100 to any port 8001 proto tcp
+
+# 对特定 IP 开放端口范围
+sudo ufw allow from 192.168.1.100 to any port 8000:8010 proto tcp
+```
+
+### 对多个 IP 开放
+
+```bash
+# 方法1：逐个添加
+sudo ufw allow from 192.168.1.100 to any port 8000 proto tcp
+sudo ufw allow from 192.168.1.101 to any port 8000 proto tcp
+sudo ufw allow from 10.0.0.50 to any port 8000 proto tcp
+
+# 方法2：对整个子网开放
+sudo ufw allow from 192.168.1.0/24 to any port 8000 proto tcp
+sudo ufw allow from 10.0.0.0/8 to any port 8000 proto tcp
+```
+
+### 完整配置示例
+
+```bash
+#!/bin/bash
+# 允许特定客户端 IP 访问大模型 API
+
+CLIENT_IP="192.168.1.100"
+
+# 开放 GLM-4.7 端口
+sudo ufw allow from $CLIENT_IP to any port 8000 proto tcp comment "GLM-4.7 for $CLIENT_IP"
+
+# 开放 Qwen3-235B 端口
+sudo ufw allow from $CLIENT_IP to any port 8001 proto tcp comment "Qwen3-235B for $CLIENT_IP"
+
+# 查看规则
+sudo ufw status numbered
+```
+
+### 删除规则
+
+```bash
+# 查看规则编号
+sudo ufw status numbered
+
+# 按编号删除
+sudo ufw delete 5
+
+# 或按规则删除
+sudo ufw delete allow from 192.168.1.100 to any port 8000 proto tcp
+```
+
+### 注意事项
+
+- `allow from IP` 方式**不会触发速率限制**，与 `ufw limit` 不同
+- 规则按顺序匹配，更具体的规则应放在前面
+- 修改后无需重启 UFW，规则立即生效
+
+---
+
 ## 参考链接
 
 - [vLLM Tool Calling 官方文档](https://docs.vllm.ai/en/latest/features/tool_calling/)
