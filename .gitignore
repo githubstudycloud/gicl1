@@ -1,0 +1,5 @@
+# Docker compose 配置文件
+docker-compose/
+
+# 包含密钥的配置文件
+local-llm-cli-setup/
